@@ -1,2 +1,2 @@
 using vim to edit a test.
-hhhhhhhhhand aim to text the bug management
+and aim to text the bug management
