@@ -1,0 +1,362 @@
+#include    "unp.h"
+#include    <time.h>
+#include    <string.h>
+#include    <stdlib.h>
+#include    <unistd.h>
+#include    <sys/types.h>
+#include    <sys/socket.h>
+#include    <netinet/in.h>
+#include    <arpa/inet.h>
+#define MAXNUM 3
+int judge()
+{
+    union{
+        short s;
+        char c[sizeof(short)];
+    }un;
+    un.s=0x0102;
+    if(sizeof(short)==2){
+        if(un.c[0]==1&&un.c[1]==2)
+            {
+                printf("Big\n");
+                return 1;
+            }
+        else{
+            printf("Small\n");
+            return 0;
+        }
+    }
+}
+void usage(char *command){
+    printf("usage:%s portnum filename\n",command);
+    exit(0);
+}
+int
+main(int argc, char **argv)
+{
+    int                 listenfd, connfd;
+    struct sockaddr_in  servaddr, cliaddr;
+    char                buff[MAXLINE];
+    time_t              ticks;
+    char wrong[MAXLINE]="Enough Users! Can not connect successfully!\n";
+    char samebyte[MAXLINE]="Same bytecode\n";
+    char diffbyte[MAXLINE]="Different bytecode\n";
+    int a[10];
+    int buf[MAXLINE];
+    int i=0;
+    int number;
+    char select[MAXLINE]="1.Find your IP,Port and Time\n2.Compare the bytecode\n3.Print\n4.Calculate\n5.File\n6.Exit\n";
+    char selectnum[MAXLINE];
+    char errbuf[MAXLINE]="too much clients!";
+    char badinput[MAXLINE]="Input wrong number,please login in again!";
+    char choice;
+    ssize_t n,n3;
+    pid_t childpid;
+    socklen_t clilen;
+    char line4[10];
+    char line5[10];
+    long add1,add2,add3;
+    char char1,char2; 
+    fd_set rset,allset;
+    int nready,client[MAXNUM];
+    int maxi,maxfd,sockfd;
+    int readb=0;
+
+
+    struct timeval timeout={3,0};
+    struct fd_set fds;
+    FILE *fp;
+    int sock;
+    char filebuffer[MAXLINE]={0};
+
+    listenfd = Socket(AF_INET, SOCK_STREAM, 0);
+
+    bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family      = AF_INET;
+    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    servaddr.sin_port        = htons(13);   /* daytime server */
+
+    int on=1;
+    if(setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on))<0){
+        perror("setsockopt failed\n");
+        exit(EXIT_FAILURE);
+    }//Avoid something
+
+    Bind(listenfd, (SA *) &servaddr, sizeof(servaddr));
+
+    Listen(listenfd, LISTENQ);
+/*  maxfd=listenfd;
+    maxi=-1;
+    for(i=1;i<MAXNUM;i++)
+        client[i]=-1;
+    FD_ZERO(&allset);
+//  FD_SET(listenfd,&allset);
+    for ( ; ; ) {
+        rset=allset;
+        connfd=Accept(listenfd,(SA*) &cliaddr,&clilen);
+    FD_SET(connfd,&allset);
+        nready=Select(maxfd+1,&rset,NULL,NULL,NULL);
+        clilen=sizeof(cliaddr);
+//      connfd=Accept(listenfd,(SA*) &cliaddr,&clilen);
+        if(FD_ISSET(listenfd,&rset)){
+            if((childpid=Fork())==0){
+                Close(listenfd);
+            
+            for(i=0;i<MAXNUM;i++)
+                if(client[i]<0){
+                    client[i]=connfd;
+                    break;
+                }
+            if(i==MAXNUM)
+            {
+                exit(0);
+                Writen(connfd,errbuf,MAXLINE);
+            }
+            FD_SET(connfd,&allset);
+            if(connfd>maxfd){
+                maxfd=connfd;
+            }
+            if(i>maxi){
+                maxi=i;
+            }
+            if(--nready<=0)
+                continue;
+            exit(0);
+        }
+        }
+        for(i=0;i<=maxi;i++){
+            if((sockfd=client[i])<0)
+                continue;
+            if(FD_ISSET(sockfd,&rset)){
+                if((n=Read(sockfd,buf,MAXLINE))==0){
+                    Close(sockfd);
+                    FD_CLR(sockfd,&allset);
+                    client[i]=-1;
+                }
+                else
+                    Writen(sockfd,buf,n);
+                if(--nready<=0)
+                    break;
+            }
+        }*/
+        maxfd=listenfd;
+        FD_ZERO(&allset);
+        FD_SET(listenfd,&allset);
+        for(;;){
+                
+        rset=allset;
+        nready=Select(maxfd+1,&rset,NULL,NULL,&timeval);
+        clilen = sizeof(cliaddr);
+        connfd = Accept(listenfd, (SA *) &cliaddr, &clilen);
+        a[i]=ntohs(cliaddr.sin_port);
+        if(i!=0&&a[i]!=a[i-1])
+            i++;
+        if(i==0)
+            i++;
+        if((childpid=Fork())==0){
+        if(i<3){
+        Close(listenfd);while(1){
+        Write(connfd,select,strlen(select));
+        printf("Hello\n");
+        while((n=read(connfd,selectnum,MAXLINE))>0) {
+                choice=selectnum[0];
+                printf("Number is %c\n",choice);
+                printf("%s",selectnum);
+                selectnum[0]=0;
+                break;
+            }
+        //judge error
+    //  printf("choice:%c\n",choice);
+    //  printf("%s\n",selectnum);
+    //  choice=selectnum[0];
+        printf("Choice:%c\n",choice);
+        if(choice=='1'){
+            ticks = time(NULL);
+            if(strcmp(Inet_ntop(AF_INET,&cliaddr.sin_addr,buff,sizeof(buff)),"192.168.43.11")==0){
+            printf("QianZhen has connected!\n"); //Judge the person by IP
+        }   
+            snprintf(buff,sizeof(buff),"%.24s\r\n",ctime(&ticks));
+            Write(connfd,buff,strlen(buff));
+            printf("connection from %s\nport %d\ntime %.24s\r\nID %d\n",
+           Inet_ntop(AF_INET, &cliaddr.sin_addr, buff, sizeof(buff)),
+                    ntohs(cliaddr.sin_port),ctime(&ticks),i);
+                
+        }
+        else if(choice=='2'){
+            number=judge();
+            read(connfd,buf,strlen(buff));
+                if(buf[0]==number){
+                    printf("Same bytecode\n");
+                    Write(connfd,samebyte,strlen(samebyte));
+                }
+                else{
+                    printf("Different bytecode\n");
+                    Write(connfd,diffbyte,strlen(diffbyte));
+                }
+            }
+        else if(choice=='3'){
+            another:
+                while((n3=read(connfd,buf,MAXLINE))>0)
+                {   Writen(connfd,buf,n3);
+                    printf("%s",buf);
+                }
+                if(n<0&&errno==EINTR){
+                    goto another;
+                }
+                else if(n<0){
+                    err_sys("str_echo:read erro");      
+                }
+                    exit(0);
+            }           
+        else if(choice=='4'){
+            if((n=Readline(connfd,line4,MAXLINE))==0){
+                return 0;  //connection closed by other end
+            }
+            add1=line4[0];
+            add1=add1-'0';
+            printf("%c\n",add1);
+            char1=line4[1];
+            add2=line4[2];
+            add2=add2-'0';
+            char2=line4[3];
+            add3=line4[4];
+            add3=add3-'0';
+            printf("%s",line4);
+            //printf("%d\n",add1+add2);
+            //printf("%c\n",char1);
+            //printf("%c\n",char2);
+            //printf("Hello %s",line4);
+            if(char2=='*'){
+                    if(char1=='+'){
+                        snprintf(line5,sizeof(line5),"%ld\n",add1+add2*add3);   
+                        Writen(connfd,line5,MAXLINE);
+                        printf("%ld\n",add1+add2*add3);
+                    }
+                    else if(char1=='-'){
+                        snprintf(line4,sizeof(line4),"%ld\n",add1-add2*add3);
+                        Writen(connfd,line4,MAXLINE);
+                    }
+                    else if(char1=='*'){
+                        snprintf(line4,sizeof(line4),"%ld\n",add1*add2*add3);
+                        Writen(connfd,line4,MAXLINE);
+                    }
+                    else if(char1=='/'&&add2!=0){
+                        snprintf(line4,sizeof(line4),"%ld\n",(add1/add2)*add3);
+                        Writen(connfd,line4,MAXLINE);
+                    }
+                    else{
+                        printf("Wrong!\n");
+                        //return something wrong
+                    }
+                }
+            else if(char2=='/'&&add3!=0){
+                    if(char1=="+"){
+                        snprintf(line4,sizeof(line4),"%ld\n",add1+add2/add3);   
+                        Writen(connfd,line4,MAXLINE);
+                    }
+                    else if(char1=='-'){
+                        snprintf(line4,sizeof(line4),"%ld\n",add1-add2/add3);
+                        Writen(connfd,line4,MAXLINE);
+                    }
+                    else if(char1=='*'){
+                        snprintf(line4,sizeof(line4),"%ld\n",add1*add2/add3);
+                        Writen(connfd,line4,MAXLINE);
+                    }
+                    else if(char1=='/'&&add2!=0){
+                        snprintf(line4,sizeof(line4),"%ld\n",(add1/add2)/add3);
+                        Writen(connfd,line4,MAXLINE);
+                    }
+                    else{
+                        //return something wrong
+                    }
+                }
+            else if(char2=='+'){
+                    if(char1=='+'){
+                        snprintf(line4,sizeof(line4),"%ld\n",add1+add2+add3);   
+                        Writen(connfd,line4,MAXLINE);
+                        //printf("%ld\n",add1+add2*add3);
+                    }
+                    else if(char1=='-'){
+                        snprintf(line4,sizeof(line4),"%ld\n",add1-add2+add3);
+                        Writen(connfd,line4,MAXLINE);
+                    }
+                    else if(char1=='*'){
+                        snprintf(line4,sizeof(line4),"%ld\n",add1*add2+add3);
+                        Writen(connfd,line4,MAXLINE);
+                    }
+                    else if(char1=='/'&&add2!=0){
+                        snprintf(line4,sizeof(line4),"%ld\n",(add1/add2)+add3);
+                        Writen(connfd,line4,MAXLINE);
+                    }
+             else if(char2=='-'){
+                    if(char1=='+'){
+                        snprintf(line4,sizeof(line4),"%ld\n",add1+add2-add3);   
+                        Writen(connfd,line4,MAXLINE);
+                        printf("%ld\n",add1+add2*add3);
+                    }
+                    else if(char1=='-'){
+                        snprintf(line4,sizeof(line4),"%ld\n",add1-add2-add3);
+                        Writen(connfd,line4,MAXLINE);
+                    }
+                    else if(char1=='*'){
+                        snprintf(line4,sizeof(line4),"%ld\n",add1*add2-add3);
+                        Writen(connfd,line4,MAXLINE);
+                    }
+                    else if(char1=='/'&&add2!=0){
+                        snprintf(line4,sizeof(line4),"%ld\n",(add1/add2)-add3);
+                        Writen(connfd,line4,MAXLINE);
+                    }
+                    else{
+                        printf("Wrong!\n");
+                        //return something wrong
+                    }
+                }
+                    else{
+                        printf("Wrong!\n");
+                        //return something wrong
+                    }
+                }
+            printf("Hello %s",line4);
+            /*  else{
+                printf("No answer!");       //return something wrong
+                }*/
+            }
+        else if(choice=='5'){
+/*          bzero(buf5,MAXLINE);
+            while(recv_len=recv(link_id,buf,MAXLINE,0)){
+                if(recv_len<0){
+                    printf("Receive Data From Server Failed!\n");
+                    break;
+                }
+                write_leng=fwrite(buf,sizeof(char),recv_len,fp);
+                if(write_leng<recv_len){
+                    printf("Write file failed\n");
+                    break;
+                }
+                bzero(buf,MAXLINE);
+            }
+            printf("\nFinish Receive\n");
+            fclose(fp);*/
+        }
+        else if(choice=='6'){
+            exit(0);// Jump from the loop or exit?
+        }
+        else{
+        //  Writen(connfd,badinput,MAXLINE);
+            exit(0);
+        
+        }
+}
+}
+
+        else{
+            Write(connfd,wrong,strlen(wrong));
+            printf("Enough Users!Sorry!\n");
+            exit(0);
+        }
+        exit(0);
+    }
+
+        Close(connfd);
+        }
+}
